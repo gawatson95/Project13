@@ -10,7 +10,9 @@ import UIKit
 
 class ViewController: UIViewController, UIImagePickerControllerDelegate & UINavigationControllerDelegate {
     @IBOutlet var imageView: UIImageView!
+    @IBOutlet var filterButton: UIButton!
     @IBOutlet var intensity: UISlider!
+    @IBOutlet var radius: UISlider!
     var currentImage: UIImage!
     
     var context: CIContext!
@@ -44,7 +46,13 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate & UINavi
     }
 
     @IBAction func save(_ sender: Any) {
-        guard let image = imageView.image else { return }
+        guard let image = imageView.image else {
+            let ac = UIAlertController(title: "No image", message: "Select an image to add a filter to and try again.", preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "OK", style: .default))
+            present(ac, animated: true)
+            return
+        }
+        
         UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
     }
     
@@ -68,6 +76,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate & UINavi
     }
     
     func setFilter(action: UIAlertAction) {
+        filterButton.setTitle(action.title, for: .normal)
         guard currentImage != nil else { return }
         guard let actionTitle = action.title else { return }
         
@@ -83,6 +92,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate & UINavi
         applyProcessing()
     }
     
+    @IBAction func radiusChanged(_ sender: Any) {
+        applyProcessing()
+    }
+    
     func applyProcessing() {
         let inputKeys = currentFilter.inputKeys
         
@@ -91,7 +104,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate & UINavi
         }
         
         if inputKeys.contains(kCIInputRadiusKey) {
-            currentFilter.setValue(intensity.value * 200, forKey: kCIInputRadiusKey)
+            currentFilter.setValue(radius.value * 200, forKey: kCIInputRadiusKey)
         }
         
         if inputKeys.contains(kCIInputScaleKey) {
